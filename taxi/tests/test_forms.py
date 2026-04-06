@@ -29,26 +29,26 @@ class DriverTestForms(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_driver_update_license_form_length(self):
-        form_data = DriverLicenseUpdateForm(data={"license_number": "ab12345"})
-        self.assertFalse(form_data.is_valid())
+        form = DriverLicenseUpdateForm(data={"license_number": "ab12345"})
+        self.assertFalse(form.is_valid())
 
     def test_driver_update_license_form_first_3_upper(self):
-        form_data = DriverLicenseUpdateForm(
+        form = DriverLicenseUpdateForm(
             data={"license_number": "abc12345"}
         )
-        self.assertFalse(form_data.is_valid())
+        self.assertFalse(form.is_valid())
 
     def test_driver_update_license_form_first_3_digit(self):
-        form_data = DriverLicenseUpdateForm(
+        form = DriverLicenseUpdateForm(
             data={"license_number": "1bc12345"}
         )
-        self.assertFalse(form_data.is_valid())
+        self.assertFalse(form.is_valid())
 
     def test_driver_update_license_form_last_5_digit(self):
-        form_data = DriverLicenseUpdateForm(
+        form = DriverLicenseUpdateForm(
             data={"license_number": "ABC123aa"}
         )
-        self.assertFalse(form_data.is_valid())
+        self.assertFalse(form.is_valid())
 
     def test_driver_update_license_form_valid(self):
         form = DriverLicenseUpdateForm(

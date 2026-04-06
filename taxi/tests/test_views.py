@@ -86,7 +86,7 @@ class SearchViewTests(TestCase):
         self.assertIn(driver1, response.context["driver_list"])
         self.assertNotIn(driver2, response.context["driver_list"])
 
-    def test_search_cart(self):
+    def test_search_car(self):
         manufacturer = Manufacturer.objects.create(
             name="BMW",
             country="Germany",

@@ -1,5 +1,3 @@
-from re import search
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -14,6 +12,31 @@ from .forms import (
     CarForm,
     SearchForm
 )
+
+
+class SearchMixin:
+    search_field = None
+    placeholder = ""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        form = SearchForm(self.request.GET)
+        form.fields["search"].widget.attrs["placeholder"] = \
+            self.placeholder
+        context["search_form"] = form
+
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        form = SearchForm(self.request.GET)
+        if form.is_valid():
+            search_data = form.cleaned_data["search"]
+            return queryset.filter(
+                **{f"{self.search_field}__icontains": search_data}
+            )
+        return queryset
 
 
 @login_required
@@ -37,29 +60,17 @@ def index(request):
     return render(request, "taxi/index.html", context=context)
 
 
-class ManufacturerListView(LoginRequiredMixin, generic.ListView):
+class ManufacturerListView(
+    LoginRequiredMixin,
+    SearchMixin,
+    generic.ListView
+):
     model = Manufacturer
     context_object_name = "manufacturer_list"
     template_name = "taxi/manufacturer_list.html"
     paginate_by = 5
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        form = SearchForm(self.request.GET)
-        form.fields["search"].widget.attrs["placeholder"] = \
-            "Search by manufacturer name"
-        context["search_form"] = form
-
-        return context
-
-    def get_queryset(self):
-        queryset = Manufacturer.objects.all()
-        form = SearchForm(self.request.GET)
-        if form.is_valid():
-            search_data = form.cleaned_data["search"]
-            return queryset.filter(name__icontains=search_data)
-        return queryset
+    search_field = "name"
+    placeholder = "Search by manufacturer name"
 
 
 class ManufacturerCreateView(LoginRequiredMixin, generic.CreateView):
@@ -79,27 +90,11 @@ class ManufacturerDeleteView(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy("taxi:manufacturer-list")
 
 
-class CarListView(LoginRequiredMixin, generic.ListView):
+class CarListView(LoginRequiredMixin, SearchMixin, generic.ListView):
     model = Car
     paginate_by = 5
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        form = SearchForm(self.request.GET)
-        form.fields["search"].widget.attrs["placeholder"] = \
-            "Search by car model"
-        context["search_form"] = form
-
-        return context
-
-    def get_queryset(self):
-        queryset = Car.objects.select_related("manufacturer")
-        form = SearchForm(self.request.GET)
-        if form.is_valid():
-            search_data = form.cleaned_data["search"]
-            return queryset.filter(model__icontains=search_data)
-        return queryset
+    search_field = "model"
+    placeholder = "Search by car model"
 
 
 class CarDetailView(LoginRequiredMixin, generic.DetailView):
@@ -123,27 +118,11 @@ class CarDeleteView(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy("taxi:car-list")
 
 
-class DriverListView(LoginRequiredMixin, generic.ListView):
+class DriverListView(LoginRequiredMixin, SearchMixin, generic.ListView):
     model = Driver
     paginate_by = 5
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        form = SearchForm(self.request.GET)
-        form.fields["search"].widget.attrs["placeholder"] = \
-            "Search by driver username"
-        context["search_form"] = form
-
-        return context
-
-    def get_queryset(self):
-        queryset = Driver.objects.all()
-        form = SearchForm(self.request.GET)
-        if form.is_valid():
-            search_value = form.cleaned_data["search"]
-            return queryset.filter(username__icontains=search_value)
-        return queryset
+    search_field = "username"
+    placeholder = "Search by driver username"
 
 
 class DriverDetailView(LoginRequiredMixin, generic.DetailView):
